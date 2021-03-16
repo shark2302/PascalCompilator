@@ -23,7 +23,7 @@ def _make_parser():
 
     LPAR, RPAR = pp.Literal('(').suppress(), pp.Literal(')').suppress()
     LBRACK, RBRACK = pp.Literal("[").suppress(), pp.Literal("]").suppress()
-    LBRACE, RBRACE = pp.Literal("{").suppress(), pp.Literal("}").suppress()
+    LBRACE, RBRACE = pp.Literal("begin").suppress(), pp.Literal("end").suppress()
     SEMI, COMMA = pp.Literal(';').suppress(), pp.Literal(',').suppress()
     ASSIGN = pp.Literal('=')
 
