@@ -10,7 +10,9 @@ def _make_parser():
     IF = pp.Keyword('if')
     FOR = pp.Keyword('for')
     RETURN = pp.Keyword('return')
-    keywords = IF | FOR | RETURN
+    BEGIN = pp.Keyword("begin")
+    END = pp.Keyword("end")
+    keywords = IF | FOR | RETURN | BEGIN | END
 
     # num = ppc.fnumber.copy().setParseAction(lambda s, loc, tocs: tocs[0])
     num = pp.Regex('[+-]?\\d+\\.?\\d*([eE][+-]?\\d+)?')
@@ -23,7 +25,7 @@ def _make_parser():
 
     LPAR, RPAR = pp.Literal('(').suppress(), pp.Literal(')').suppress()
     LBRACK, RBRACK = pp.Literal("[").suppress(), pp.Literal("]").suppress()
-    LBRACE, RBRACE = pp.Literal("begin").suppress(), pp.Literal("end").suppress()
+    LBRACE, RBRACE = BEGIN.suppress(), END.suppress()
     SEMI, COMMA = pp.Literal(';').suppress(), pp.Literal(',').suppress()
     ASSIGN = pp.Literal(':=')
 
