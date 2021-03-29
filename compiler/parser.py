@@ -7,22 +7,6 @@ from .ast import *
 
 
 def _make_parser():
-    IF = pp.Keyword('if')
-    FOR = pp.Keyword('for')
-    RETURN = pp.Keyword('return')
-    BEGIN = pp.Keyword("begin")
-    END = pp.Keyword("end")
-    keywords = IF | FOR | RETURN | BEGIN | END
-
-    # num = ppc.fnumber.copy().setParseAction(lambda s, loc, tocs: tocs[0])
-    num = pp.Regex('[+-]?\\d+\\.?\\d*([eE][+-]?\\d+)?')
-    # c escape-последовательностями как-то неправильно работает
-    str_ = pp.QuotedString('"', escChar='\\', unquoteResults=False, convertWhitespaceEscapes=False)
-    literal = num | str_ | pp.Regex('true|false')
-    # только, чтобы показать, ~keywords здесь не нужен
-    ident = (~keywords + ppc.identifier.copy()).setName('ident')
-    type_ = ident.copy().setName('type')
-
     LPAR, RPAR = pp.Literal('(').suppress(), pp.Literal(')').suppress()
     LBRACK, RBRACK = pp.Literal("[").suppress(), pp.Literal("]").suppress()
     LBRACE, RBRACE = BEGIN.suppress(), END.suppress()
@@ -37,6 +21,23 @@ def _make_parser():
     BIT_OR = pp.Literal('|')
     GE, LE, GT, LT = pp.Literal('>='), pp.Literal('<='), pp.Literal('>'), pp.Literal('<')
     NEQUALS, EQUALS = pp.Literal('!='), pp.Literal('==')
+
+    IF = pp.Keyword('if')
+    FOR = pp.Keyword('for')
+    BEGIN = pp.Keyword("begin")
+    END = pp.Keyword("end")
+    RETURN = pp.Keyword('return')
+    VAR = pp.Keyword('var')
+    keywords = IF | FOR | RETURN | VAR | BEGIN | END
+
+    # num = ppc.fnumber.copy().setParseAction(lambda s, loc, tocs: tocs[0])
+    num = pp.Regex('[+-]?\\d+\\.?\\d*([eE][+-]?\\d+)?')
+    # c escape-последовательностями как-то неправильно работает
+    str_ = pp.QuotedString('"', escChar='\\', unquoteResults=False, convertWhitespaceEscapes=False)
+    literal = num | str_ | pp.Regex('true|false')
+    # только, чтобы показать, ~keywords здесь не нужен
+    ident = (~keywords + ppc.identifier).setName('ident')
+    type_ = ident.copy().setName('type')
 
     add = pp.Forward()
     expr = pp.Forward()
@@ -67,6 +68,9 @@ def _make_parser():
     var_inner = simple_assign | ident
     vars_ = type_ + var_inner + pp.ZeroOrMore(COMMA + var_inner)
 
+    pascal_vars_decl = ident + pp.ZeroOrMore(COMMA + ident) + pp.Literal(':').suppress() + type_
+    pascal_var_vars_decl = VAR.suppress() + pascal_vars_decl + pp.ZeroOrMore(SEMI + pascal_vars_decl)
+
     assign = ident + ASSIGN.suppress() + expr
     simple_stmt = assign | call
 
@@ -92,6 +96,7 @@ def _make_parser():
         # обязательно ниже if, for и т.п., иначе считает их за типы данных (сейчас уже не считает - см. грамматику)
         # обязательно выше vars, иначе посчитает за два vars
         vars_ + SEMI |
+        pascal_var_vars_decl + SEMI |
         composite |
         func
     )
@@ -119,6 +124,12 @@ def _make_parser():
                     node = BinOpNode(BinOp(tocs[i]), node, secondNode, loc=loc)
                 return node
             parser.setParseAction(bin_op_parse_action)
+        elif rule_name == 'pascal_vars_decl':
+            def parse_action(s, loc, tocs):
+                tocs = [tocs[-1], *tocs[0:-1]]
+                return VarsNode(*tocs, loc=loc)
+
+            parser.setParseAction(parse_action)
         else:
             cls = ''.join(x.capitalize() for x in rule_name.split('_')) + 'Node'
             with suppress(NameError):
@@ -129,6 +140,7 @@ def _make_parser():
                             return FuncNode(tocs[0], tocs[1], tocs[2:-1], tocs[-1], loc=loc)
                         else:
                             return cls(*tocs, loc=loc)
+
                     parser.setParseAction(parse_action)
 
     for var_name, value in locals().copy().items():

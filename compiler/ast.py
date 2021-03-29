@@ -366,6 +366,33 @@ class VarsNode(StmtNode):
         self.node_type = TypeDesc.VOID
 
 
+class PascalVarsDeclNode(StmtNode):
+    def __init__(self, a: IdentNode, b: IdentNode, *ident_list: Tuple[IdentNode, ...],
+                 row: Optional[int] = None, line: Optional[int] = None, **props) -> None:
+        super().__init__(row=row, line=line, **props)
+        idents = [a, b, *ident_list]
+        self.type = idents[-1]
+        self.vars = idents[0:-1]
+
+    def __str__(self) -> str:
+        return str(self.type) + ' (pascal)'
+
+    @property
+    def childs(self) -> Tuple[AstNode, ...]:
+        return self.vars
+
+    def semantic_check(self, scope: IdentScope) -> None:
+        self.type.semantic_check(scope)
+        for var in self.vars:
+            var_node: IdentNode = var.var if isinstance(var, AssignNode) else var
+            try:
+                scope.add_ident(IdentDesc(var_node.name, self.type.type))
+            except SemanticException as e:
+                var_node.semantic_error(e.message)
+            var.semantic_check(scope)
+        self.node_type = TypeDesc.VOID
+
+
 class ReturnNode(StmtNode):
     """Класс для представления в AST-дереве оператора return
     """
