@@ -7,6 +7,8 @@ from .ast import *
 
 
 def _make_parser():
+    BEGIN = pp.Keyword("begin")
+    END = pp.Keyword("end")
     LPAR, RPAR = pp.Literal('(').suppress(), pp.Literal(')').suppress()
     LBRACK, RBRACK = pp.Literal("[").suppress(), pp.Literal("]").suppress()
     LBRACE, RBRACE = BEGIN.suppress(), END.suppress()
@@ -24,10 +26,9 @@ def _make_parser():
 
     IF = pp.Keyword('if')
     FOR = pp.Keyword('for')
-    BEGIN = pp.Keyword("begin")
-    END = pp.Keyword("end")
     RETURN = pp.Keyword('return')
     VAR = pp.Keyword('var')
+    THEN = pp.Keyword('then')
     keywords = IF | FOR | RETURN | VAR | BEGIN | END
 
     # num = ppc.fnumber.copy().setParseAction(lambda s, loc, tocs: tocs[0])
@@ -50,7 +51,7 @@ def _make_parser():
         literal |
         call |  # обязательно перед ident, т.к. приоритетный выбор (или использовать оператор ^ вместо | )
         ident |
-        LPAR + expr + RPAR
+        expr # убрал скобки по сторонам expr
     )
 
     # обязательно везде pp.Group, иначе приоритет операций не будет работать (см. реализцию set_parse_action_magic);
@@ -79,7 +80,7 @@ def _make_parser():
     for_cond = expr | pp.Group(pp.empty).setName('stmt_list')
     for_body = stmt | pp.Group(SEMI).setName('stmt_list')
 
-    if_ = IF.suppress() + LPAR + expr + RPAR + stmt + pp.Optional(pp.Keyword("else").suppress() + stmt)
+    if_ = IF.suppress() + expr + THEN.suppress() + stmt + pp.Optional(pp.Keyword("else").suppress() + stmt)
     for_ = FOR.suppress() + LPAR + for_stmt_list + SEMI + for_cond + SEMI + for_stmt_list + RPAR + for_body
     return_ = RETURN.suppress() + expr
     composite = LBRACE + stmt_list + RBRACE

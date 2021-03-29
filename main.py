@@ -60,10 +60,15 @@ def main() -> None:
 
     prog6 = '''
         var a, b: int; s: string;
-        a = 5;
-        b = 3 + a;
-
-        for (int d= 0 ; 5; f());
+        a := 5;
+        b := 3 + a;
+    
+        if a > b then
+        begin
+        a := 0;
+        b := 1;
+        end
+        
     '''
 
     program.execute(prog6)
