@@ -9,6 +9,7 @@ from .ast import *
 def _make_parser():
     BEGIN = pp.Keyword("begin")
     END = pp.Keyword("end")
+    DO = pp.Keyword("do")
     LPAR, RPAR = pp.Literal('(').suppress(), pp.Literal(')').suppress()
     LBRACK, RBRACK = pp.Literal("[").suppress(), pp.Literal("]").suppress()
     LBRACE, RBRACE = BEGIN.suppress(), END.suppress()
@@ -26,10 +27,11 @@ def _make_parser():
 
     IF = pp.Keyword('if')
     FOR = pp.Keyword('for')
+    WHILE = pp.Keyword("while")
     RETURN = pp.Keyword('return')
     VAR = pp.Keyword('var')
     THEN = pp.Keyword('then')
-    keywords = IF | FOR | RETURN | VAR | BEGIN | END
+    keywords = IF | FOR | WHILE | RETURN | VAR | BEGIN | END
 
     # num = ppc.fnumber.copy().setParseAction(lambda s, loc, tocs: tocs[0])
     num = pp.Regex('[+-]?\\d+\\.?\\d*([eE][+-]?\\d+)?')
@@ -80,8 +82,13 @@ def _make_parser():
     for_cond = expr | pp.Group(pp.empty).setName('stmt_list')
     for_body = stmt | pp.Group(SEMI).setName('stmt_list')
 
+
+    while_cond = expr | pp.Group(pp.empty).setName('stmt_list')
+    while_body = stmt | pp.Group(SEMI).setName('stmt_list')
+
     if_ = IF.suppress() + expr + THEN.suppress() + stmt + pp.Optional(pp.Keyword("else").suppress() + stmt)
     for_ = FOR.suppress() + LPAR + for_stmt_list + SEMI + for_cond + SEMI + for_stmt_list + RPAR + for_body
+    while_ = WHILE.suppress() + while_cond + DO.suppress() + while_body
     return_ = RETURN.suppress() + expr
     composite = LBRACE + stmt_list + RBRACE
 
@@ -92,6 +99,7 @@ def _make_parser():
     stmt << (
         if_ |
         for_ |
+        while_ |
         return_ |
         simple_stmt + SEMI |
         # обязательно ниже if, for и т.п., иначе считает их за типы данных (сейчас уже не считает - см. грамматику)

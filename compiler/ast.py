@@ -477,6 +477,36 @@ class ForNode(StmtNode):
         self.node_type = TypeDesc.VOID
 
 
+class WhileNode(StmtNode):
+    """Класс для представления в AST-дереве цикла while
+    """
+
+    def __init__(self, cond: Optional[ExprNode],
+                 body: Optional[StmtNode],
+                 row: Optional[int] = None, col: Optional[int] = None, **props) -> None:
+        super().__init__(row=row, col=col, **props)
+        self.cond = cond if cond else EMPTY_STMT
+        self.body = body if body else EMPTY_STMT
+
+    def __str__(self) -> str:
+        return 'while'
+
+    @property
+    def childs(self) -> Tuple[AstNode, ...]:
+        return self.cond, self.body
+
+    def semantic_check(self, scope: IdentScope) -> None:
+        scope = IdentScope(scope)
+        self.init.semantic_check(scope)
+        if self.cond == EMPTY_STMT:
+            self.cond = LiteralNode('true')
+        self.cond.semantic_check(scope)
+        self.cond = type_convert(self.cond, TypeDesc.BOOL, None, 'условие')
+        self.step.semantic_check(scope)
+        self.body.semantic_check(IdentScope(scope))
+        self.node_type = TypeDesc.VOID
+
+
 class ParamNode(StmtNode):
     """Класс для представления в AST-дереве объявления параметра функции
     """

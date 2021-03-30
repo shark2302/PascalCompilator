@@ -62,11 +62,10 @@ def main() -> None:
         var a, b: int; s: string;
         a := 5;
         b := 3 + a;
-    
-        if a > b then
+
+        while a < 10 do
         begin
-        a := 0;
-        b := 1;
+        a := a + 1;
         end
         
     '''
