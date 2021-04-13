@@ -59,13 +59,12 @@ def main() -> None:
     '''
 
     prog6 = '''
-        var a, b: int; s: string;
+        var a, b, i: int; s: string;
         a := 5;
         b := 3 + a;
-
-        while a < 10 do
-        begin
-        a := a + 1;
+        
+        for i:= 1 downto 15 do begin
+            a := a + 1;
         end
         
     '''

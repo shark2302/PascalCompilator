@@ -10,6 +10,7 @@ def _make_parser():
     BEGIN = pp.Keyword("begin")
     END = pp.Keyword("end")
     DO = pp.Keyword("do")
+    TO, DOWNTO = pp.Keyword("to"), pp.Keyword("downto")
     LPAR, RPAR = pp.Literal('(').suppress(), pp.Literal(')').suppress()
     LBRACK, RBRACK = pp.Literal("[").suppress(), pp.Literal("]").suppress()
     LBRACE, RBRACE = BEGIN.suppress(), END.suppress()
@@ -79,15 +80,16 @@ def _make_parser():
 
     for_stmt_list0 = (pp.Optional(simple_stmt + pp.ZeroOrMore(COMMA + simple_stmt))).setName('stmt_list')
     for_stmt_list = vars_ | for_stmt_list0
-    for_cond = expr | pp.Group(pp.empty).setName('stmt_list')
+    for_cond = expr
     for_body = stmt | pp.Group(SEMI).setName('stmt_list')
+    for_step = TO.suppress() | DOWNTO.suppress()
 
 
     while_cond = expr | pp.Group(pp.empty).setName('stmt_list')
     while_body = stmt | pp.Group(SEMI).setName('stmt_list')
 
     if_ = IF.suppress() + expr + THEN.suppress() + stmt + pp.Optional(pp.Keyword("else").suppress() + stmt)
-    for_ = FOR.suppress() + LPAR + for_stmt_list + SEMI + for_cond + SEMI + for_stmt_list + RPAR + for_body
+    for_ = FOR.suppress() + for_stmt_list + for_step + for_cond + DO.suppress() + for_body
     while_ = WHILE.suppress() + while_cond + DO.suppress() + while_body
     return_ = RETURN.suppress() + expr
     composite = LBRACE + stmt_list + RBRACE

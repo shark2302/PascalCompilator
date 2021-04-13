@@ -450,12 +450,11 @@ class ForNode(StmtNode):
     """
 
     def __init__(self, init: Optional[StmtNode], cond: Optional[ExprNode],
-                 step: Optional[StmtNode], body: Optional[StmtNode],
+                 body: Optional[StmtNode],
                  row: Optional[int] = None, col: Optional[int] = None, **props) -> None:
         super().__init__(row=row, col=col, **props)
         self.init = init if init else EMPTY_STMT
         self.cond = cond if cond else EMPTY_STMT
-        self.step = step if step else EMPTY_STMT
         self.body = body if body else EMPTY_STMT
 
     def __str__(self) -> str:
@@ -463,7 +462,7 @@ class ForNode(StmtNode):
 
     @property
     def childs(self) -> Tuple[AstNode, ...]:
-        return self.init, self.cond, self.step, self.body
+        return self.init, self.cond, self.body
 
     def semantic_check(self, scope: IdentScope) -> None:
         scope = IdentScope(scope)
@@ -472,7 +471,6 @@ class ForNode(StmtNode):
             self.cond = LiteralNode('true')
         self.cond.semantic_check(scope)
         self.cond = type_convert(self.cond, TypeDesc.BOOL, None, 'условие')
-        self.step.semantic_check(scope)
         self.body.semantic_check(IdentScope(scope))
         self.node_type = TypeDesc.VOID
 
