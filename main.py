@@ -63,8 +63,8 @@ def main() -> None:
         a := 5;
         b := 3 + a;
         
-        for i:= 1 downto 15 do begin
-            a := a + 1;
+        while a < 8 do begin
+        a := a + 1;
         end
         
     '''
